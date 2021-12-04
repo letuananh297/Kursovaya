@@ -12,11 +12,10 @@ private:
 		T data;
 		Element_Stack* next;
 	};
-	
-	size_t size;
 
 public:
 	Element_Stack* top;
+	size_t size;
 
 	bool contains(T x) {
 		if (isEmpty())
@@ -81,8 +80,6 @@ public:
 		else
 			return false;
 	}
-
-	size_t getsize() { return size; }
 
 	Stack() {
 		top = NULL;

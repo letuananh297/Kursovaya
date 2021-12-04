@@ -3,5 +3,19 @@
   <Executable>D:\Второй курс (1)\АиСД\Курсовая работа\Debug\TestKR.exe</Executable>
   <TestDurations>
     <TestDuration Test="TestCaseName.TestName" Duration="1" />
+    <TestDuration Test="Test_ReversePolishNotation.Test_RPN" Duration="1" />
+    <TestDuration Test="Test_Stack.Test_isEmpty" Duration="1" />
+    <TestDuration Test="Test_Stack.Test_getsize" Duration="1" />
+    <TestDuration Test="Test_Stack.Test_contains" Duration="1" />
+    <TestDuration Test="Test_Stack.Test_push" Duration="1" />
+    <TestDuration Test="Test_Stack.Test_pop" Duration="1" />
+    <TestDuration Test="Test_Queue.Test_isEmpty" Duration="1" />
+    <TestDuration Test="Test_Queue.Test_getsize" Duration="1" />
+    <TestDuration Test="Test_Queue.Test_contains" Duration="1" />
+    <TestDuration Test="Test_Queue.Test_enQueue" Duration="1" />
+    <TestDuration Test="Test_Queue.Test_deQueue" Duration="1" />
+    <TestDuration Test="Test_Queue.Test_getfront" Duration="1" />
+    <TestDuration Test="Test_Queue.Test_getrear" Duration="1" />
+    <TestDuration Test="Test_Calculator.Test_Calculator" Duration="5" />
   </TestDurations>
 </GtaTestDurations>

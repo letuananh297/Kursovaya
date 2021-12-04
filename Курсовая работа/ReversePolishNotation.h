@@ -14,16 +14,19 @@ bool is_operator(char in) {
     return (in == '+' || in == '-' || in == '*' || in == '/' || in == '^');
 }
 
-int prior(char in) {
-    if (in == '+' || in == '-')//если + или -,
-        return 1;//то приоритет 1
-    else if (in == '*' || in == '/')//если * или /,
-        return 2;//то 2
+int priority(char in) {
+    if (in == '+' || in == '-')
+        return 1;
+    else if (in == '*' || in == '/')
+        return 2;
     else if (in == '^')
         return 3;
-    else//если это вообще не операци€, то возвращает 0
+    else
         return 0;
 }
+
+int s1 = 0, s2 = 0;
+bool closed = 0;
 
 Queue<char>* ReversePolishNotation(string& input) {
 	Stack<char>* stack = new Stack<char>;
@@ -33,229 +36,261 @@ Queue<char>* ReversePolishNotation(string& input) {
     if (!is_digit(input[input.size() - 1]) && input[input.size() - 1] != ')' &&
         input[input.size() - 1] != 'i' && input[input.size() - 1] != 'e' && 
         input[input.size() - 1] != '!') {
-        cout << /*throw logic_error(*/"Missing number.";
+        throw logic_error("Expression is not correct.");
     }
 
      else if (is_operator(input[0]) || input[0] == '.'
-              || input[0] == ')' || input[0] == '!') {
+              || input[0] == ')' || input[0] == '!' || input[0] == '^') {
         if (input[0] == '-')
-            cout << /*throw logic_error(*/"Negative numbers are required in parentheses.";
+            throw logic_error("Negative numbers are required in parentheses.");
         else
-            cout << /*throw logic_error(*/"Operator at the beginning of the expression.";
+            throw logic_error("Expression is not correct.");
     }
 
     else {
         for (int j = 0; j < input.size(); j++) {
             i = input[j];
-            if (i == '.')//если это просто точка, т.е. пользователь ввел число по типу 0.2,
-                queue->enQueue(i);//то тупо пихаем еЄ внутрь
+            if (i == '.')
+                queue->enQueue(i);
+
             else if (is_digit(i))
                 queue->enQueue(i);
+
             else if (is_operator(i)) {
                 if (is_operator(input[j - 1])) {
-                    cout << /*throw logic_error(*/"2 operators in a row.";
+                    throw logic_error("2 operators in a row.");
                     stack->~Stack();
                     queue->~Queue();
                     break;
                 }
                 else {
                     if (!(stack->isEmpty())) {
-                        if (prior(stack->peek()) == prior(i)) {
+                        if (priority(stack->peek()) == priority(i)) {
+                            if (is_digit(queue->rear->data))
+                                queue->enQueue(' ');
                             queue->enQueue(stack->pop());
+                            queue->enQueue(' ');
                             stack->push(i);
                         }
-                        else if (prior(stack->peek()) > prior(i))//если же это была оперци€ меньшего приоритета, т.е. + или -
+                        else if (priority(stack->peek()) > priority(i))
                         {
                             while (!stack->isEmpty() && stack->peek() != '(') {
+                                if (is_digit(queue->rear->data) || is_operator(queue->rear->data))
+                                    queue->enQueue(' ');
                                 queue->enQueue(stack->pop());
+                                queue->enQueue(' ');
                             }
                             stack->push(i);
                         }
                     }
-                    if (stack->isEmpty() || prior(stack->peek()) < prior(i)) {
+                    if (stack->isEmpty() || priority(stack->peek()) < priority(i)) {
                         bool neg = 0;
-                        if (!queue->isEmpty() && is_digit(queue->getrear()))//если последнее, что было в gen - переменна€ или цифра, 
-                            queue->enQueue(' ');//то следует поставить ограничивающий знак
-                        else if (((!stack->isEmpty() && stack->contains('(')) && i == '-')) {
-                            neg = 1;
-                            queue->enQueue('(');
-                            queue->enQueue('-');
+                        if (!queue->isEmpty() && is_digit(queue->rear->data))
+                            queue->enQueue(' ');
+                        else if ((!stack->isEmpty() && stack->contains('(') && i == '-')) {
+                            if (queue->isEmpty()) {
+                                neg = 1;
+                                queue->enQueue('(');
+                                queue->enQueue('-');
+                                queue->enQueue(' ');
+                            }                        
+                            else if (!queue->isEmpty() && queue->rear->data != ' ') {
+                                neg = 1;
+                                if (queue->rear->data != '(')
+                                    queue->enQueue('(');
+                                queue->enQueue('-');
+                                queue->enQueue(' ');
+                            }
                         }
-                        else if ((queue->isEmpty() || (!stack->isEmpty() && !stack->contains('('))) && i == '-') {
-                            cout << /*throw logic_error(*/"Negative numbers are required in parentheses.";
+                        else if (((!stack->isEmpty() && !stack->contains('('))) && i == '-') {
+                            throw logic_error("Negative numbers are required in parentheses.");
                             stack->~Stack();
                             queue->~Queue();
                             break;
                         }
-                        if (!queue->isEmpty() && neg == 0)//если последнее в gen не _, которые мы могли только что записать => это кака€-то операци€
+                        if (!queue->isEmpty() && neg == 0)
                             stack->push(i);
                     }
                 }
             }
-            else if (i == '(')//если же у нас не цифра, не переменна€ и не операци€, а откр. скобка, то...
+
+            else if (i == '(')
             {
-                if (!queue->isEmpty() && is_digit(queue->getrear())) {
-                    queue->enQueue(' ');//ставим ограничивающий знак, а в стек записываем *
-                    stack->push('*');//ќп€ть же, зачем? ј затем, чтобы не ставить его самим при записи типа: 23(13 + 1), например
+                s1++;
+                if (!queue->isEmpty() && is_digit(queue->rear->data)) {
+                    queue->enQueue(' ');
+                    stack->push('*');
                 }
                 stack->push(i);
-                //queue->enQueue(i);//запихиваем ( в стэк
             }
-            else if (i == ')')//если же у нас закрылась скобка, следует выгрущить все операции из stk в gen
+
+            else if (i == ')')
             {
-                while (!stack->isEmpty() && stack->peek() != '(')//пока стек не пустой (если он опустел значит пользователь ввел неправильное выражение) и до, конечно, открывающийс€ скобки 
-                {
+                s2++;
+                while (!stack->isEmpty() && stack->peek() != '(')
                     queue->enQueue(stack->pop());
-                    //stack->pop();
-                }
-                if (queue->contains('(')) {
+                if (((queue->contains('(') && s2 < s1) || !closed) /* && input[j + 1] != '!'*/) {
                     queue->enQueue(i);
-                    queue->enQueue(' ');
+                    if (input[j + 1] != '!')
+                        queue->enQueue(' ');
+                    closed = 1;
                 }
                 if (!stack->isEmpty()) {
                     stack->pop();
                 }
                 else {
-                    cout << /*throw logic_error(*/"Missing '('";
+                    throw logic_error("The brackets are not balanced.");
                     stack->~Stack();
                     queue->~Queue();
                     break;
                 }
             }
+
             else if (i == '!') {
-                if (is_digit(input[j - 1])) {
+                if (is_digit(input[j - 1]) || input[j - 1] == ')') {
+                    if (is_operator(queue->rear->data))
+                        queue->enQueue(' ');
                     queue->enQueue(i);
                     queue->enQueue(' ');
+                    closed = 1;
                 }
-                else
-                    cout << /*throw logic_error(*/"The factorial function was entered incorrectly.";
+                else {
+                    throw logic_error("The factorial function was entered incorrectly.");
+                    stack->~Stack();
+                    queue->~Queue();
+                    break;
+                }
             }
 
             else if (input[j] == 'c' && input[j + 1] == 'o' && input[j + 2] == 's') {
                 if (input[j + 3] != '(') {
-                    cout << /*throw logic_error(*/"The parameter of the cos function must be enclosed in parentheses.";
+                    throw logic_error("The parameter of the cos function must be enclosed in parentheses.");
                     stack->~Stack();
                     queue->~Queue();
                     break;
                 }
                 else {
-                    stack->push(input[j + 3]);
                     for (int k = j; k < j + 4; k++)
                         queue->enQueue(input[k]);
-                    j = j + 3;
+                    j = j + 2;
+                    closed = 0;
                 }
             }
 
             else if (input[j] == 's' && input[j + 1] == 'i' && input[j + 2] == 'n') {
                 if (input[j + 3] != '(') {
-                    cout << /*throw logic_error(*/"The parameter of the sin function must be enclosed in parentheses.";
+                    throw logic_error("The parameter of the sin function must be enclosed in parentheses.");
                     stack->~Stack();
                     queue->~Queue();
                     break;
                 }
                 else {
-                    stack->push(input[j + 3]);
                     for (int k = j; k < j + 4; k++)
                         queue->enQueue(input[k]);
-                    j = j + 3;
+                    j = j + 2;
+                    closed = 0;
                 }
             }
 
             else if (input[j] == 't' && input[j + 1] == 'g') {
                 if (input[j + 2] != '(') {
-                    cout << /*throw logic_error(*/"The parameter of the tg function must be enclosed in parentheses.";
+                    throw logic_error("The parameter of the tg function must be enclosed in parentheses.");
                     stack->~Stack();
                     queue->~Queue();
                     break;
                 }
                 else {
-                    stack->push(input[j + 2]);
                     for (int k = j; k < j + 3; k++)
                         queue->enQueue(input[k]);
-                    j = j + 2;
+                    j = j + 1;
+                    closed = 0;
                 }
             }
 
             else if (input[j] == 'c' && input[j + 1] == 't' && input[j + 2] == 'g') {
                 if (input[j + 3] != '(') {
-                    cout << /*throw logic_error(*/"The parameter of the ctg function must be enclosed in parentheses.";
+                    throw logic_error("The parameter of the ctg function must be enclosed in parentheses.");
                     stack->~Stack();
                     queue->~Queue();
                     break;
                 }
                 else {
-                    stack->push(input[j + 3]);
                     for (int k = j; k < j + 4; k++)
                         queue->enQueue(input[k]);
-                    j = j + 3;
+                    j = j + 2;
+                    closed = 0;
                 }
             }
 
             else if (input[j] == 'l' && input[j + 1] == 'n') {
                 if (input[j + 2] != '(') {
-                    cout << /*throw logic_error(*/"The parameter of the ln function must be enclosed in parentheses.";
+                    throw logic_error("The parameter of the ln function must be enclosed in parentheses.");
                     stack->~Stack();
                     queue->~Queue();
                     break;
                 }
                 else {
-                    stack->push(input[j + 2]);
                     for (int k = j; k < j + 3; k++)
                         queue->enQueue(input[k]);
-                    j = j + 2;
+                    j = j + 1;
+                    closed = 0;
                 }
             }
 
             else if (input[j] == 'l' && input[j + 1] == 'o' && input[j + 2] == 'g') {
                 if (input[j + 3] != '(') {
-                    cout << /*throw logic_error(*/"The parameter of the log function must be enclosed in parentheses.";
+                    throw logic_error("The parameter of the log function must be enclosed in parentheses.");
                     stack->~Stack();
                     queue->~Queue();
                     break;
                 }
                 else {
-                    stack->push(input[j + 3]);
                     for (int k = j; k < j + 4; k++)
                         queue->enQueue(input[k]);
-                    j = j + 3;
+                    j = j + 2;
+                    closed = 0;
                 }
             }
 
             else if (input[j] == 's' && input[j + 1] == 'q' && input[j + 2] == 'r' && input[j + 3] == 't') {
                 if (input[j + 4] != '(') {
-                    cout << /*throw logic_error(*/"The parameter of the sqrt function must be enclosed in parentheses.";
+                    throw logic_error("The parameter of the sqrt function must be enclosed in parentheses.");
                     stack->~Stack();
                     queue->~Queue();
                     break;
                 }
                 else {
-                    stack->push(input[j + 4]);
                     for (int k = j; k < j + 5; k++)
                         queue->enQueue(input[k]);
-                    j = j + 4;
+                    j = j + 3;
+                    closed = 0;
                 }
             }
 
             else if (input[j] == 'p' && input[j + 1] == 'i') {
-                if (!queue->isEmpty() && is_digit(queue->getrear())) {
-                    queue->enQueue(' ');//ставим ограничивающий знак, а в стек записываем *
-                    stack->push('*');//ќп€ть же, зачем? ј затем, чтобы не ставить его самим при записи типа: 23(13 + 1), например
+                if (!queue->isEmpty() && is_digit(queue->rear->data)) {
+                    queue->enQueue(' ');
+                    stack->push('*');
                 }
                 for (int k = j; k < j + 2; k++)
                     queue->enQueue(input[k]);
+                if (input[j + 2] != ')')
+                    queue->enQueue(' ');
                 j = j + 1;
             }
 
             else if (i == 'e') {
-                if (!queue->isEmpty() && is_digit(queue->getrear())) {
-                    queue->enQueue(' ');//ставим ограничивающий знак, а в стек записываем *
-                    stack->push('*');//ќп€ть же, зачем? ј затем, чтобы не ставить его самим при записи типа: 23(13 + 1), например
+                if (!queue->isEmpty() && is_digit(queue->rear->data)) {
+                    queue->enQueue(' ');
+                    stack->push('*');
                 }
                 queue->enQueue(i);
+                if (input[j + 1] != ')')
+                    queue->enQueue(' ');
             }
 
             else {
-                cout << /*throw logic_error(*/"Expression is not correct.";
+                throw runtime_error("Expression is not correct.");
                 stack->~Stack();
                 queue->~Queue();
                 break;
@@ -263,11 +298,20 @@ Queue<char>* ReversePolishNotation(string& input) {
         }
     }
 
-    while (!stack->isEmpty())
+    while (!stack->isEmpty()) {
+        if (is_digit(queue->rear->data) || is_operator(queue->rear->data))
+            queue->enQueue(' ');
         queue->enQueue(stack->pop());
+    }
 
     if (is_digit(input[input.size() - 1]))
         queue->enQueue(' ');
+
+    if (s1 != s2) {
+        stack->~Stack();
+        queue->~Queue();
+        throw logic_error("The brackets are not balanced.");
+    }
 
     return queue;
 }

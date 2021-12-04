@@ -13,12 +13,11 @@ private:
 		Element_Queue* next;
 	};
 
-	
-
 public:
 	Element_Queue* front;
 	Element_Queue* rear;
 	size_t size;
+
 	bool contains(T x) {
 		if (isEmpty())
 			throw runtime_error("Queue is empty.");
@@ -71,24 +70,6 @@ public:
 			return value;
 		}
 	}
-
-	T getfront() {
-		if (isEmpty())
-			throw runtime_error("Stack is empty.");
-		else {
-			return front->data;
-		}
-	}
-
-	T getrear() {
-		if (isEmpty())
-			throw runtime_error("Stack is empty.");
-		else {
-			return rear->data;
-		}
-	}
-
-	size_t getsize() { return size; }
 
 	bool isEmpty() {
 		if (front == NULL && rear == NULL)
